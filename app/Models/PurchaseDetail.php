@@ -27,6 +27,19 @@ class PurchaseDetail extends Model
         'received_quantity' => 'decimal:2',
     ];
 
+    protected static function boot()
+    {
+        parent::boot();
+
+        // Using saving event to ensure subtotal is set before database insert/update
+        static::saving(function ($model) {
+            // Calculate subtotal if it's not already set
+            if (empty($model->subtotal) && isset($model->quantity) && isset($model->unit_price)) {
+                $model->subtotal = $model->quantity * $model->unit_price;
+            }
+        });
+    }
+
     public function purchase(): BelongsTo
     {
         return $this->belongsTo(Purchase::class);
